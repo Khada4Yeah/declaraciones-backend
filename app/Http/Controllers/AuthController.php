@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AuthRequest;
+use App\Models\Usuario;
+use App\Models\Administrador;
 use Illuminate\Routing\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\VarDumper\VarDumper;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -23,15 +27,56 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(AuthRequest $authRequest)
     {
-        $credentials = request(["correo_electronico", "clave"]);
+        $credenciales = $authRequest->validated();
 
-        if (!($token = auth()->attempt($credentials))) {
-            return response()->json(["error" => "Unauthorized"], 401);
+        $usuario = Usuario::where(
+            "correo_electronico",
+            $credenciales["correo_electronico"],
+        )->first();
+
+        if (!$usuario) {
+            return response()->json(
+                ["message" => "Credenciales incorrectas"],
+                401,
+            );
         }
 
-        return $this->respondWithToken($token);
+        $administrador = Administrador::where(
+            "id_usuario",
+            $usuario->id_usuario,
+        )->first();
+
+        if (
+            !$administrador ||
+            !Hash::check($credenciales["clave"], $administrador->clave)
+        ) {
+            return response()->json(
+                ["status" => "error", "message" => "Credenciales incorrectas"],
+                401,
+            );
+        }
+
+        try {
+            $token = JWTAuth::fromUser($administrador);
+            return response()->json(
+                [
+                    "token" => $token,
+                    "expires_in" => JWTAuth::factory()->getTTL() * 60,
+                ],
+                200,
+            );
+        } catch (\Throwable $e) {
+            return response()->json(
+                [
+                    "status" => "error",
+                    "message" => "No se pudo crear el token",
+                    "errors" => $e->getMessage(),
+                ],
+                500,
+            );
+        }
     }
 
     /**

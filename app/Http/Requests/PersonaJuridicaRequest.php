@@ -46,6 +46,7 @@ class PersonaJuridicaRequest extends UsuarioRequest
                     "ruc" => "required|numeric|digits:13",
                     "razon_social" => "required|string",
                     "clave_acceso" => "required|string",
+                    "informacion_adicional" => "string",
                 ]);
                 break;
             case "PATCH":
@@ -61,6 +62,7 @@ class PersonaJuridicaRequest extends UsuarioRequest
                     ],
                     "razon_social" => "required|string",
                     "clave_acceso" => "required|string",
+                    "informacion_adicional" => "string",
                 ]);
                 break;
             default:

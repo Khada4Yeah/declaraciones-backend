@@ -9,6 +9,7 @@ use App\Http\Controllers\AdministradorController;
 use App\Http\Controllers\PersonaJuridicaController;
 use App\Http\Controllers\PersonaNaturalController;
 
+//?? RUTAS DE AUTENTICACIÓN ?/
 Route::post("auth/login", [AuthController::class, "login"]);
 
 //?? RUTAS DE USUARIOS ?/

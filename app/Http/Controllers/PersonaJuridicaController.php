@@ -100,13 +100,9 @@ class PersonaJuridicaController extends Controller
         int $idPersonaJuridica,
     ) {
         // Buscando la persona jurídica
-        $personaJuridica = PersonaJuridica::find($idPersonaJuridica)
-            ->with("usuario")
-            ->first();
-
-        if (!$personaJuridica) {
-            throw new \Exception("El usuario no existe");
-        }
+        $personaJuridica = PersonaJuridica::with("usuario")->findOrFail(
+            $idPersonaJuridica,
+        );
 
         // Inicio de la transacción
         DB::beginTransaction();
@@ -119,7 +115,15 @@ class PersonaJuridicaController extends Controller
             $usuario = Usuario::find($personaJuridica->id_usuario);
             $usuario->correo_electronico = $usuarioData["correo_electronico"];
             $usuario->celular = $usuarioData["celular"];
+            // $usuario->save();
+            // Antes de guardar el modelo
+            dd($usuario->updated_at);
+
+            // Guardar el modelo
             $usuario->save();
+
+            // Después de guardar el modelo
+            dd($usuario->updated_at);
 
             // Actualización de la persona jurídica
             $personaJuridica->ruc = $usuarioData["ruc"];
