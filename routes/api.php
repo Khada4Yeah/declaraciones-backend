@@ -10,7 +10,16 @@ use App\Http\Controllers\PersonaJuridicaController;
 use App\Http\Controllers\PersonaNaturalController;
 
 //?? RUTAS DE AUTENTICACIÓN ?/
-Route::post("auth/login", [AuthController::class, "login"]);
+//** Ruta para iniciar sesión en el sistema */
+Route::post("auth/login", [AuthController::class, "login"])->name("login");
+//** Ruta para cerrar sesión en el sistema */
+Route::post("auth/logout", [AuthController::class, "logout"])->middleware(
+    "auth:api",
+);
+//** Ruta para renovar el token de autenticación */
+
+//* Ruta para obtener el usuario autenticado */
+Route::post("auth/me", [AuthController::class, "me"])->middleware("auth:api");
 
 //?? RUTAS DE USUARIOS ?/
 //** API de usuarios */

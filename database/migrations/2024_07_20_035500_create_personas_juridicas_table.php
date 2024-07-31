@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->bigInteger("id_usuario");
             $table->string("ruc", 13)->unique();
             $table->string("razon_social");
-            $table->string("clave_acceso");
+            $table->string("clave_acceso", 512);
             $table->text("informacion_adicional")->nullable();
             $table
                 ->foreign("id_usuario")

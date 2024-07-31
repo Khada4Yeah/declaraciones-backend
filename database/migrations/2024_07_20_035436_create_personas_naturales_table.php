@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string("nombres");
             $table->string("apellido_p")->nullable();
             $table->string("apellido_m")->nullable();
-            $table->string("clave_acceso");
+            $table->string("clave_acceso", 512);
             $table->text("informacion_adicional")->nullable();
             $table
                 ->foreign("id_usuario")

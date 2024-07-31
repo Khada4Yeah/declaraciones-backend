@@ -7,7 +7,6 @@ use App\Models\Usuario;
 use App\Models\Administrador;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
-use Symfony\Component\VarDumper\VarDumper;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -86,8 +85,46 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        auth()->logout();
+        try {
+            $token = JWTAuth::getToken();
+            JWTAuth::invalidate($token);
 
-        return response()->json(["message" => "Successfully logged out"]);
+            return response()->json(
+                [
+                    "status" => "success",
+                    "message" => "Usuario deslogueado correctamente",
+                ],
+                200,
+            );
+        } catch (\Throwable $th) {
+            return response()->json(
+                [
+                    "status" => "error",
+                    "message" => "No se pudo desloguear al usuario",
+                    "errors" => $th->getMessage(),
+                ],
+                500,
+            );
+        }
+    }
+
+    /**
+     * Get the authenticated User.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function me()
+    {
+        try {
+            return response()->json(auth()->user());
+        } catch (\Throwable $th) {
+            return response()->json(
+                [
+                    "status" => "error",
+                    "message" => "No se pudo obtener el usuario autenticado",
+                ],
+                500,
+            );
+        }
     }
 }

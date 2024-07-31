@@ -23,10 +23,10 @@ class PersonaJuridicaRequest extends UsuarioRequest
     protected function idUsuario(): int|null
     {
         if ($this->route("personas_juridica")) {
-            $personaJuridica = PersonaJuridica::findOrFail(
+            $persona_juridica = PersonaJuridica::findOrFail(
                 $this->route("personas_juridica"),
             );
-            return $personaJuridica->id_usuario;
+            return $persona_juridica->id_usuario;
         }
         return null;
     }
@@ -38,38 +38,32 @@ class PersonaJuridicaRequest extends UsuarioRequest
      */
     public function rules(): array
     {
-        $rules = parent::rules();
+        $baseRules = parent::rules();
 
-        switch ($this->method()) {
-            case "POST":
-                $rules = array_merge($rules, [
-                    "ruc" => "required|numeric|digits:13",
-                    "razon_social" => "required|string",
-                    "clave_acceso" => "required|string",
-                    "informacion_adicional" => "string",
-                ]);
-                break;
-            case "PATCH":
-                $rules = array_merge($rules, [
-                    "ruc" => [
-                        "required",
-                        "numeric",
-                        "digits:13",
-                        Rule::unique("personas_juridicas")->ignore(
-                            $this->idUsuario(),
-                            "id_usuario",
-                        ),
-                    ],
-                    "razon_social" => "required|string",
-                    "clave_acceso" => "required|string",
-                    "informacion_adicional" => "string",
-                ]);
-                break;
-            default:
-                break;
+        $customRules = [
+            "ruc" => [
+                "required",
+                "numeric",
+                "digits:13",
+                Rule::unique("personas_juridicas", "ruc"),
+            ],
+            "razon_social" => "required|string",
+            "clave_acceso" => "required|string",
+            "informacion_adicional" => "string",
+        ];
+        if ($this->isMethod("PUT")) {
+            $customRules["ruc"] = [
+                "required",
+                "numeric",
+                "digits:13",
+                Rule::unique("personas_juridicas", "ruc")->ignore(
+                    $this->idUsuario(),
+                    "id_usuario",
+                ),
+            ];
         }
 
-        return $rules;
+        return array_merge($baseRules, $customRules);
     }
 
     /**
@@ -83,6 +77,7 @@ class PersonaJuridicaRequest extends UsuarioRequest
             "ruc.required" => "El RUC es requerido",
             "ruc.numeric" => "El RUC debe ser numérico",
             "ruc.digits" => "El RUC debe tener 13 dígitos",
+            "ruc.unique" => "El RUC ya está en uso",
             "razon_social.required" => "La razón social es requerida",
             "razon_social.string" =>
                 "La razón social debe ser una cadena de texto",

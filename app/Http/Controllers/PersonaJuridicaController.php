@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PersonaJuridicaRequest;
 use App\Models\PersonaJuridica;
 use App\Models\Usuario;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
 
 class PersonaJuridicaController extends Controller
 {
@@ -15,8 +15,14 @@ class PersonaJuridicaController extends Controller
      */
     public function index()
     {
-        $personasJuridicas = PersonaJuridica::with("usuario")->get();
-        return response()->json($personasJuridicas);
+        $personas_juridicas = PersonaJuridica::with("usuario")->get();
+        $personas_juridicas = $personas_juridicas->map(function ($persona) {
+            $persona->clave_acceso = Crypt::decryptString(
+                $persona->clave_acceso,
+            );
+            return $persona;
+        });
+        return response()->json($personas_juridicas);
     }
 
     /**
@@ -47,7 +53,9 @@ class PersonaJuridicaController extends Controller
                 "id_usuario" => $usuario->id_usuario,
                 "ruc" => $usuarioData["ruc"],
                 "razon_social" => $usuarioData["razon_social"],
-                "clave_acceso" => bcrypt($usuarioData["clave_acceso"]),
+                "clave_acceso" => Crypt::encryptString(
+                    $usuarioData["clave_acceso"],
+                ),
                 "informacion_adicional" =>
                     $usuarioData["informacion_adicional"] ?? null,
             ]);
@@ -90,6 +98,13 @@ class PersonaJuridicaController extends Controller
      */
     public function show(int $idPersonaJuridica)
     {
+        $personaJuridica = PersonaJuridica::with("usuario")->findOrFail(
+            $idPersonaJuridica,
+        );
+        $personaJuridica->clave_acceso = Crypt::decryptString(
+            $personaJuridica->clave_acceso,
+        );
+        return response()->json($personaJuridica);
     }
 
     /**
@@ -100,9 +115,7 @@ class PersonaJuridicaController extends Controller
         int $idPersonaJuridica,
     ) {
         // Buscando la persona jurídica
-        $personaJuridica = PersonaJuridica::with("usuario")->findOrFail(
-            $idPersonaJuridica,
-        );
+        $personaJuridica = PersonaJuridica::findOrFail($idPersonaJuridica);
 
         // Inicio de la transacción
         DB::beginTransaction();
@@ -112,27 +125,23 @@ class PersonaJuridicaController extends Controller
             $usuarioData = $personaJuridicaRequest->validated();
 
             // Actualización del usuario
-            $usuario = Usuario::find($personaJuridica->id_usuario);
+            $usuario = Usuario::findOrFail($personaJuridica->id_usuario);
             $usuario->correo_electronico = $usuarioData["correo_electronico"];
             $usuario->celular = $usuarioData["celular"];
-            // $usuario->save();
-            // Antes de guardar el modelo
-            dd($usuario->updated_at);
 
             // Guardar el modelo
             $usuario->save();
 
-            // Después de guardar el modelo
-            dd($usuario->updated_at);
-
             // Actualización de la persona jurídica
             $personaJuridica->ruc = $usuarioData["ruc"];
             $personaJuridica->razon_social = $usuarioData["razon_social"];
-            $personaJuridica->clave_acceso = bcrypt(
+            $personaJuridica->clave_acceso = Crypt::encryptString(
                 $usuarioData["clave_acceso"],
             );
             $personaJuridica->informacion_adicional =
                 $usuarioData["informacion_adicional"] ?? null;
+
+            // Guardar el modelo
             $personaJuridica->save();
 
             // Commit de la transacción

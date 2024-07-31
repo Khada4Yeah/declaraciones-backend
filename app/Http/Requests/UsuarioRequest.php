@@ -40,7 +40,7 @@ class UsuarioRequest extends FormRequest
                     "celular" => "required|numeric|digits:10",
                 ];
                 break;
-            case "PATCH":
+            case "PUT":
                 return [
                     "correo_electronico" => [
                         "required",
