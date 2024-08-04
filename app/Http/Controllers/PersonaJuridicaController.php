@@ -177,6 +177,31 @@ class PersonaJuridicaController extends Controller
      */
     public function destroy(PersonaJuridica $personaJuridica)
     {
-        //
+        // Inicio de la transacción
+        DB::beginTransaction();
+
+        try {
+            // Eliminación de la persona jurídica
+            $personaJuridica->delete();
+
+            // Commit de la transacción
+            DB::commit();
+
+            return response()->json(
+                [
+                    "message" => "Persona jurídica eliminada exitosamente",
+                ],
+                200,
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(
+                [
+                    "error" => "Error al eliminar la persona jurídica",
+                    "message" => $e->getMessage(),
+                ],
+                500,
+            );
+        }
     }
 }

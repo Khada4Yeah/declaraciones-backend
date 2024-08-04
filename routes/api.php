@@ -23,16 +23,27 @@ Route::post("auth/me", [AuthController::class, "me"])->middleware("auth:api");
 
 //?? RUTAS DE USUARIOS ?/
 //** API de usuarios */
-Route::apiResource("usuarios", UsuarioController::class);
+Route::apiResource("usuarios", UsuarioController::class)->middleware(
+    "auth:api",
+);
 
 //?? RUTAS DE ADMINISTRADORES ?/
 //** API de administradores */
-Route::apiResource("administradores", AdministradorController::class);
+Route::apiResource(
+    "administradores",
+    AdministradorController::class,
+)->middleware("auth:api");
 
 // ?? RUTAS DE PERSONAS JURÍDICAS ?/
 //** API de personas jurídicas */
-Route::apiResource("personas-juridicas", PersonaJuridicaController::class);
+Route::apiResource(
+    "personas-juridicas",
+    PersonaJuridicaController::class,
+)->middleware("auth:api");
 
 // ?? RUTAS DE PERSONAS NATURALES ?/
 //** API de personas naturales */
-Route::apiResource("personas-naturales", PersonaNaturalController::class);
+Route::apiResource(
+    "personas-naturales",
+    PersonaNaturalController::class,
+)->middleware("auth:api");

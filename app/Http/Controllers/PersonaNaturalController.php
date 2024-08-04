@@ -184,8 +184,41 @@ class PersonaNaturalController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PersonaNatural $personaNatural)
+    public function destroy(int $idPersonaNatural)
     {
-        //
+        // Busca la persona natural
+        $persona_natural = PersonaNatural::findOrFail($idPersonaNatural);
+
+        // Inicio de la transacción
+        DB::beginTransaction();
+
+        try {
+            // Eliminación de la persona natural
+            $persona_natural->delete();
+
+            // Eliminación del usuario
+            $usuario = Usuario::findOrFail($persona_natural->id_usuario);
+            $usuario->delete();
+
+            // Commit de la transacción
+            DB::commit();
+
+            // Respuesta
+            return response()->json(
+                [
+                    "message" => "Persona natural eliminada exitosamente",
+                ],
+                200,
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(
+                [
+                    "error" => "Error al eliminar la persona natural",
+                    "message" => $e->getMessage(),
+                ],
+                500,
+            );
+        }
     }
 }
