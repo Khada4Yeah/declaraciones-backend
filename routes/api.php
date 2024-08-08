@@ -33,7 +33,6 @@ Route::apiResource(
     "administradores",
     AdministradorController::class,
 )->middleware("auth:api");
-
 // ?? RUTAS DE PERSONAS JURÍDICAS ?/
 //** API de personas jurídicas */
 Route::apiResource(
