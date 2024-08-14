@@ -88,7 +88,7 @@ class NotificationController extends Controller
             $sujeto = "{$persona->nombres} {$persona->apellido_p} {$persona->apellido_m}";
         }
 
-        $email = "paul_x29@hotmail.com";
+        $email = "dveras2487@gmail.com";
         $dias_restantes =
             $intervalo === 0
                 ? "hoy"

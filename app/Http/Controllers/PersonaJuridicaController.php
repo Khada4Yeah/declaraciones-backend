@@ -175,21 +175,29 @@ class PersonaJuridicaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PersonaJuridica $personaJuridica)
+    public function destroy(int $idPersonaJuridica)
     {
+        // Busca la persona natural
+        $persona_juridica = PersonaJuridica::findOrFail($idPersonaJuridica);
+
         // Inicio de la transacción
         DB::beginTransaction();
 
         try {
-            // Eliminación de la persona jurídica
-            $personaJuridica->delete();
+            // Eliminación de la persona natural
+            $persona_juridica->delete();
+
+            // Eliminación del usuario
+            $usuario = Usuario::findOrFail($persona_juridica->id_usuario);
+            $usuario->delete();
 
             // Commit de la transacción
             DB::commit();
 
+            // Respuesta
             return response()->json(
                 [
-                    "message" => "Persona jurídica eliminada exitosamente",
+                    "message" => "Persona juridica eliminada exitosamente",
                 ],
                 200,
             );
@@ -197,7 +205,7 @@ class PersonaJuridicaController extends Controller
             DB::rollBack();
             return response()->json(
                 [
-                    "error" => "Error al eliminar la persona jurídica",
+                    "error" => "Error al eliminar la persona juridica",
                     "message" => $e->getMessage(),
                 ],
                 500,
