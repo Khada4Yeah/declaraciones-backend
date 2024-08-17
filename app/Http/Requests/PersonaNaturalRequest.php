@@ -52,7 +52,7 @@ class PersonaNaturalRequest extends UsuarioRequest
             "apellido_p" => "nullable|string",
             "apellido_m" => "nullable|string",
             "clave_acceso" => "required|string",
-            "informacion_adicional" => "string",
+            "informacion_adicional" => "nullable|string",
         ];
 
         if ($this->isMethod("PUT")) {
