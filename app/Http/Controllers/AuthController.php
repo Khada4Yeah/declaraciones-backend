@@ -108,23 +108,23 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Get the authenticated User.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function me()
-    {
-        try {
-            return response()->json(auth()->user());
-        } catch (\Throwable $th) {
-            return response()->json(
-                [
-                    "status" => "error",
-                    "message" => "No se pudo obtener el usuario autenticado",
-                ],
-                500,
-            );
-        }
-    }
+    // /**
+    //  * Get the authenticated User.
+    //  *
+    //  * @return \Illuminate\Http\JsonResponse
+    //  */
+    // public function me()
+    // {
+    //     try {
+    //         return response()->json(auth()->user());
+    //     } catch (\Throwable $th) {
+    //         return response()->json(
+    //             [
+    //                 "status" => "error",
+    //                 "message" => "No se pudo obtener el usuario autenticado",
+    //             ],
+    //             500,
+    //         );
+    //     }
+    // }
 }

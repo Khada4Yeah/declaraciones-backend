@@ -49,7 +49,7 @@ class PersonaJuridicaRequest extends UsuarioRequest
             ],
             "razon_social" => "required|string",
             "clave_acceso" => "required|string",
-            "informacion_adicional" => "string",
+            "informacion_adicional" => "nullable|string",
         ];
         if ($this->isMethod("PUT")) {
             $customRules["ruc"] = [
