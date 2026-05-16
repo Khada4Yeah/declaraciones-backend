@@ -19,7 +19,7 @@ Route::post("auth/logout", [AuthController::class, "logout"])->middleware(
 //** Ruta para renovar el token de autenticación */
 
 //* Ruta para obtener el usuario autenticado */
-Route::post("auth/me", [AuthController::class, "me"])->middleware("auth:api");
+Route::get("auth/me", [AuthController::class, "me"])->middleware("auth:api");
 
 //?? RUTAS DE USUARIOS ?/
 //** API de usuarios */

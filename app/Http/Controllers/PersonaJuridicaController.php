@@ -3,213 +3,122 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PersonaJuridicaRequest;
-use App\Models\PersonaJuridica;
-use App\Models\Usuario;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Crypt;
+use App\Services\PersonaJuridicaService;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Controlador de personas jurídicas.
+ * Delega toda la lógica de negocio al PersonaJuridicaService.
+ */
 class PersonaJuridicaController extends Controller
 {
+    public function __construct(
+        private PersonaJuridicaService $personaJuridicaService,
+    ) {}
+
     /**
-     * Display a listing of the resource.
+     * Obtiene el listado de todas las personas jurídicas.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        $personas_juridicas = PersonaJuridica::with("usuario")->get();
-        $personas_juridicas = $personas_juridicas->map(function ($persona) {
-            $persona->clave_acceso = Crypt::decryptString(
-                $persona->clave_acceso,
-            );
-            return $persona;
-        });
-        return response()->json($personas_juridicas);
+        $personas = $this->personaJuridicaService->obtenerTodas();
+
+        return response()->json([
+            "status" => "success",
+            "data" => $personas,
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crea una nueva persona jurídica.
+     *
+     * @param PersonaJuridicaRequest $request Datos validados.
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(PersonaJuridicaRequest $personaJuridicaRequest)
+    public function store(PersonaJuridicaRequest $request)
     {
-        // Inicio de la transacción
-        DB::beginTransaction();
-
         try {
-            // Obteniendo datos validados
-            $usuarioData = $personaJuridicaRequest->validated();
+            $persona = $this->personaJuridicaService->crear($request->validated());
 
-            // Creación del usuario
-            $usuario = Usuario::create([
-                "correo_electronico" => $usuarioData["correo_electronico"],
-                "celular" => $usuarioData["celular"],
-            ]);
-
-            // Verifica si el usuario fue creado exitosamente
-            if (!$usuario) {
-                throw new \Exception("Error al crear el usuario");
-            }
-
-            // Creación de la persona jurídica
-            $persona_juridica = PersonaJuridica::create([
-                "id_usuario" => $usuario->id_usuario,
-                "ruc" => $usuarioData["ruc"],
-                "razon_social" => $usuarioData["razon_social"],
-                "clave_acceso" => Crypt::encryptString(
-                    $usuarioData["clave_acceso"],
-                ),
-                "informacion_adicional" =>
-                    $usuarioData["informacion_adicional"] ?? null,
-            ]);
-
-            // Verifica si la persona jurídica fue creada exitosamente
-            if (!$persona_juridica) {
-                throw new \Exception("Error al crear la persona jurídica");
-            }
-
-            // Commit de la transacción
-            DB::commit();
-
-            return response()->json(
-                [
-                    "id_persona_juridica" =>
-                        $persona_juridica->id_persona_juridica,
-                    "id_usuario" => $usuario->id_usuario,
-                    "ruc" => $persona_juridica->ruc,
-                    "razon_social" => $persona_juridica->razon_social,
-                    "informacion_adicional" =>
-                        $persona_juridica->informacion_adicional,
-                    "usuario" => $usuario,
-                ],
-                201,
-            );
+            return response()->json([
+                "status" => "success",
+                "message" => "Persona jurídica creada exitosamente",
+                "data" => $persona,
+            ], 201);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(
-                [
-                    "error" => "Error al crear la persona jurídica",
-                    "message" => $e->getMessage(),
-                ],
-                500,
-            );
+            Log::error("Error al crear persona jurídica: " . $e->getMessage());
+            return response()->json([
+                "status" => "error",
+                "message" => "Error al crear la persona jurídica",
+            ], 500);
         }
     }
 
     /**
-     * Display the specified resource.
+     * Muestra el detalle de una persona jurídica (incluye clave de acceso).
+     *
+     * @param int $idPersonaJuridica ID de la persona jurídica.
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show(int $idPersonaJuridica)
     {
-        $personaJuridica = PersonaJuridica::with("usuario")->findOrFail(
-            $idPersonaJuridica,
-        );
-        $personaJuridica->clave_acceso = Crypt::decryptString(
-            $personaJuridica->clave_acceso,
-        );
-        return response()->json($personaJuridica);
+        $persona = $this->personaJuridicaService->obtenerPorId($idPersonaJuridica);
+
+        return response()->json([
+            "status" => "success",
+            "data" => $persona,
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualiza una persona jurídica existente.
+     *
+     * @param PersonaJuridicaRequest $request Datos validados.
+     * @param int $idPersonaJuridica ID de la persona jurídica.
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(
-        PersonaJuridicaRequest $personaJuridicaRequest,
-        int $idPersonaJuridica,
-    ) {
-        // Buscando la persona jurídica
-        $personaJuridica = PersonaJuridica::findOrFail($idPersonaJuridica);
-
-        // Inicio de la transacción
-        DB::beginTransaction();
-
+    public function update(PersonaJuridicaRequest $request, int $idPersonaJuridica)
+    {
         try {
-            // Obteniendo datos validados
-            $usuarioData = $personaJuridicaRequest->validated();
-
-            // Actualización del usuario
-            $usuario = Usuario::findOrFail($personaJuridica->id_usuario);
-            $usuario->correo_electronico = $usuarioData["correo_electronico"];
-            $usuario->celular = $usuarioData["celular"];
-
-            // Guardar el modelo
-            $usuario->save();
-
-            // Actualización de la persona jurídica
-            $personaJuridica->ruc = $usuarioData["ruc"];
-            $personaJuridica->razon_social = $usuarioData["razon_social"];
-            $personaJuridica->clave_acceso = Crypt::encryptString(
-                $usuarioData["clave_acceso"],
+            $persona = $this->personaJuridicaService->actualizar(
+                $idPersonaJuridica,
+                $request->validated(),
             );
-            $personaJuridica->informacion_adicional =
-                $usuarioData["informacion_adicional"] ?? null;
 
-            // Guardar el modelo
-            $personaJuridica->save();
-
-            // Commit de la transacción
-            DB::commit();
-
-            return response()->json(
-                [
-                    "id_persona_juridica" =>
-                        $personaJuridica->id_persona_juridica,
-                    "id_usuario" => $usuario->id_usuario,
-                    "ruc" => $personaJuridica->ruc,
-                    "razon_social" => $personaJuridica->razon_social,
-                    "informacion_adicional" =>
-                        $personaJuridica->informacion_adicional,
-                    "usuario" => $usuario,
-                ],
-                200,
-            );
+            return response()->json([
+                "status" => "success",
+                "message" => "Persona jurídica actualizada exitosamente",
+                "data" => $persona,
+            ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(
-                [
-                    "error" => "Error al actualizar la persona jurídica",
-                    "message" => $e->getMessage(),
-                ],
-                500,
-            );
+            Log::error("Error al actualizar persona jurídica: " . $e->getMessage());
+            return response()->json([
+                "status" => "error",
+                "message" => "Error al actualizar la persona jurídica",
+            ], 500);
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una persona jurídica.
+     *
+     * @param int $idPersonaJuridica ID de la persona jurídica.
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(int $idPersonaJuridica)
     {
-        // Busca la persona natural
-        $persona_juridica = PersonaJuridica::findOrFail($idPersonaJuridica);
-
-        // Inicio de la transacción
-        DB::beginTransaction();
-
         try {
-            // Eliminación de la persona natural
-            $persona_juridica->delete();
+            $this->personaJuridicaService->eliminar($idPersonaJuridica);
 
-            // Eliminación del usuario
-            $usuario = Usuario::findOrFail($persona_juridica->id_usuario);
-            $usuario->delete();
-
-            // Commit de la transacción
-            DB::commit();
-
-            // Respuesta
-            return response()->json(
-                [
-                    "message" => "Persona juridica eliminada exitosamente",
-                ],
-                200,
-            );
+            return response()->json(null, 204);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(
-                [
-                    "error" => "Error al eliminar la persona juridica",
-                    "message" => $e->getMessage(),
-                ],
-                500,
-            );
+            Log::error("Error al eliminar persona jurídica: " . $e->getMessage());
+            return response()->json([
+                "status" => "error",
+                "message" => "Error al eliminar la persona jurídica",
+            ], 500);
         }
     }
 }
