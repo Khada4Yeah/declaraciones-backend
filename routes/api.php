@@ -9,6 +9,8 @@ use App\Http\Controllers\AdministradorController;
 use App\Http\Controllers\PersonaJuridicaController;
 use App\Http\Controllers\PersonaNaturalController;
 
+use App\Http\Controllers\ArchivoController;
+
 //?? RUTAS DE AUTENTICACIÓN ?/
 //** Ruta para iniciar sesión en el sistema */
 Route::post("auth/login", [AuthController::class, "login"])->name("login");
@@ -47,3 +49,14 @@ Route::apiResource(
     "personas-naturales",
     PersonaNaturalController::class,
 )->middleware("auth:api");
+
+// ?? RUTAS DE ARCHIVOS ?/
+//** API de gestión de archivos por usuario */
+Route::middleware("auth:api")->group(function () {
+    Route::get("archivos/{id_usuario}", [ArchivoController::class, "index"]);
+    Route::get("archivos/{id_usuario}/years", [ArchivoController::class, "obtenerAnios"]);
+    Route::post("archivos", [ArchivoController::class, "store"]);
+    Route::get("archivos/download/{id_archivo}", [ArchivoController::class, "descargar"]);
+    Route::post("archivos/download-zip", [ArchivoController::class, "descargarZip"]);
+    Route::delete("archivos/{id_archivo}", [ArchivoController::class, "destroy"]);
+});

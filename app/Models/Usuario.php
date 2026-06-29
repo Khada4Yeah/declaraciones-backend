@@ -33,4 +33,9 @@ class Usuario extends Model
     {
         return $this->hasOne(PersonaNatural::class, "id_usuario", "id_usuario");
     }
+
+    public function archivos()
+    {
+        return $this->hasMany(Archivo::class, "id_usuario", "id_usuario");
+    }
 }
