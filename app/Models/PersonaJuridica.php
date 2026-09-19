@@ -20,6 +20,8 @@ class PersonaJuridica extends Model
         "informacion_adicional",
     ];
 
+    protected $hidden = ["clave_acceso"];
+
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, "id_usuario", "id_usuario");

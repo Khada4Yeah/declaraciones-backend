@@ -25,7 +25,7 @@ class Administrador extends Authenticatable implements JWTSubject
 
     public function usuario()
     {
-        return $this->hasOne(Usuario::class, "id_usuario", "id_usuario");
+        return $this->belongsTo(Usuario::class, "id_usuario", "id_usuario");
     }
 
     /**

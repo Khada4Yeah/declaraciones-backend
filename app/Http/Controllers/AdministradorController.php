@@ -3,109 +3,122 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AdministradorRequest;
-use App\Models\Administrador;
-use App\Models\Usuario;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\AdministradorService;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Controlador de administradores.
+ * Delega toda la lógica de negocio al AdministradorService.
+ */
 class AdministradorController extends Controller
 {
+    public function __construct(
+        private AdministradorService $administradorService,
+    ) {}
+
     /**
-     * Display a listing of the resource.
+     * Obtiene el listado de todos los administradores.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        $administradores = Administrador::with("usuario")->get();
-        return response()->json($administradores);
+        $administradores = $this->administradorService->obtenerTodos();
+
+        return response()->json([
+            "status" => "success",
+            "data" => $administradores,
+        ]);
     }
 
-    public function store(AdministradorRequest $administradorRequest)
+    /**
+     * Crea un nuevo administrador.
+     *
+     * @param AdministradorRequest $request Datos validados.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(AdministradorRequest $request)
     {
-        // Inicio de la transacción
-        DB::beginTransaction();
-
         try {
-            // Validar solicitudes
-            $usuarioData = $administradorRequest->validated();
+            $administrador = $this->administradorService->crear($request->validated());
 
-            // Creación del usuario
-            $usuario = Usuario::create([
-                "correo_electronico" => $usuarioData["correo_electronico"],
-                "celular" => $usuarioData["celular"],
-            ]);
-
-            // Verifica si el usuario fue creado exitosamente
-            if (!$usuario) {
-                throw new \Exception("Error al crear el usuario");
-            }
-
-            // Creación del administrador
-            $administrador = Administrador::create([
-                "id_usuario" => $usuario->id_usuario,
-                "nombres" => $usuarioData["nombres"],
-                "apellido_p" => $usuarioData["apellido_p"],
-                "apellido_m" => $usuarioData["apellido_m"],
-                "clave" => bcrypt($usuarioData["clave"]),
-            ]);
-
-            // Verifica si el administrador fue creado exitosamente
-            if (!$administrador) {
-                throw new \Exception("Error al crear el administrador");
-            }
-
-            // Commit de la transacción
-            DB::commit();
-            return response()->json(
-                [
-                    "id_administrador" => $administrador->id_administrador,
-                    "id_usuario" => $administrador->id_usuario,
-                    "nombres" => $administrador->nombres,
-                    "apellido_p" => $administrador->apellido_p,
-                    "apellido_m" => $administrador->apellido_m,
-                    "usuario" => $usuario,
-                ],
-                201,
-            );
+            return response()->json([
+                "status" => "success",
+                "message" => "Administrador creado exitosamente",
+                "data" => $administrador,
+            ], 201);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(
-                [
-                    "error" => "Error al crear el administrador",
-                    "message" => $e->getMessage(),
-                ],
-                500,
-            );
+            Log::error("Error al crear administrador: " . $e->getMessage());
+            return response()->json([
+                "status" => "error",
+                "message" => "Error al crear el administrador",
+            ], 500);
         }
     }
 
     /**
-     * Display the specified resource.
+     * Muestra el detalle de un administrador.
+     *
+     * @param int $idAdministrador ID del administrador.
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show(int $idAdministrador)
     {
-        $administrador = Administrador::with("usuario")->find($idAdministrador);
-        if (!$administrador) {
-            return response()->json(
-                ["error" => "Administrador no encontrado"],
-                404,
+        $administrador = $this->administradorService->obtenerPorId($idAdministrador);
+
+        return response()->json([
+            "status" => "success",
+            "data" => $administrador,
+        ]);
+    }
+
+    /**
+     * Actualiza un administrador existente.
+     *
+     * @param AdministradorRequest $request Datos validados.
+     * @param int $idAdministrador ID del administrador.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(AdministradorRequest $request, int $idAdministrador)
+    {
+        try {
+            $administrador = $this->administradorService->actualizar(
+                $idAdministrador,
+                $request->validated(),
             );
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Administrador actualizado exitosamente",
+                "data" => $administrador,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error al actualizar administrador: " . $e->getMessage());
+            return response()->json([
+                "status" => "error",
+                "message" => "Error al actualizar el administrador",
+            ], 500);
         }
-        return response()->json($administrador);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Elimina un administrador.
+     *
+     * @param int $idAdministrador ID del administrador.
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Administrador $administrador)
+    public function destroy(int $idAdministrador)
     {
-        //
-    }
+        try {
+            $this->administradorService->eliminar($idAdministrador);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Administrador $administrador)
-    {
-        //
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            Log::error("Error al eliminar administrador: " . $e->getMessage());
+            return response()->json([
+                "status" => "error",
+                "message" => "Error al eliminar el administrador",
+            ], 500);
+        }
     }
 }

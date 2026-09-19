@@ -1,0 +1,43 @@
+# Reglas y Estándares del Proyecto (Backend - REST API)
+
+Como desarrollador senior, aplico las siguientes convenciones y mejores prácticas para garantizar un código limpio, mantenible y escalable en el desarrollo de nuestra API REST.
+
+## 1. Idiomas y Nomenclatura
+- **Comunicación General:** Mis explicaciones y respuestas en el chat deben ser SIEMPRE en **español**.
+- **Comentarios en el Código:** Todos los comentarios, explicaciones internas formales o notas TODO ubicadas dentro del código fuente deben escribirse en **español**.
+- **Nombres en el Código:** Variables, clases, entidades de bases de datos y nombres de archivos deben nombrarse SIEMPRE en **inglés** (ej. `get_user_by_id`, `invoice_amount`).
+- **Convención de Casos (Casing):**
+  - Utilizar siempre **`snake_case`** para el nombramiento de variables, variables de entorno y bases de datos.
+  - Utilizar **`camelCase`** obligatoriamente para funciones y métodos de clases (como Controladores, Servicios, Modelos) para respetar el estándar PSR-12 de PHP/Laravel (ej. `generarPdf`, `obtenerUsuarios`).
+  - Utilizar **`PascalCase`** (o CamelCase con mayúscula inicial) únicamente para Clases, Interfaces o Modelos (ej. `FichaController`).
+
+## 2. Documentación Obligatoria
+- **Funciones y Métodos:** Cada vez que se escriba o modifique una función, se **debe** incluir un bloque de documentación estructurada en la parte superior (como Docstrings, JSDoc u otro estándar según el lenguaje) explicando en español lo siguiente:
+  - Un breve resumen de qué hace la función.
+  - Los parámetros esperados: su tipo de dato y para qué sirven.
+  - El valor de retorno (si lo hubiera).
+  - Posibles errores, excepciones o casos límite que maneje (throws/raises).
+
+## 3. Estándares REST API
+- **URLs y Rutas (Endpoints):**
+  - Los recursos deben estar basados en **sustantivos en plural** y no en verbos (ej. `GET /api/users` y no `GET /api/get_users`).
+  - Utilizar nombres descriptivos en minúsculas conectados por guiones para las rutas, si es necesario (ej. `GET /api/spare-parts`).
+- **Verbos HTTP Semánticos:**
+  - `GET`: Para consultar y leer datos.
+  - `POST`: Exclusivo para la creación de nuevos registros.
+  - `PUT`: Para reemplazos completos de un recurso.
+  - `PATCH`: Para actualizaciones parciales de un recurso (ej. cambiar solo el estado).
+  - `DELETE`: Para eliminación o borrado lógico de recursos.
+- **Códigos de Estado (Status Codes):**
+  - Devolver siempre el código HTTP exacto: `200 OK`, `201 Created` (tras un POST), `204 No Content` (tras un DELETE sin payload), `400 Bad Request` (errores de validación cliente), `401 Unauthorized` (falta de token), `403 Forbidden` (falta de permisos), `404 Not Found` y `500 Internal Server Error`.
+- **Estructura de Respuesta Uniforme:**
+  - Todas las respuestas deben seguir una misma jerarquía de envoltorio (wrapper) en JSON. Por ejemplo, siempre separar los datos del estado o mensaje. 
+  - En los errores, mostrar un mensaje en español amigable para el frontend y evitar devolver "stack traces" de base de datos exponiendo esquema interno.
+
+## 4. Arquitectura y Código Limpio (Clean Code)
+- **Separación de Responsabilidades:** No mezclar la lógica de la base de datos con la lógica de envío de HTTP. Las rutas o controladores **solo** deben encargarse de recibir las solicitudes, extraer datos, y devolver las respuestas, delegando la lógica de negocio a Servicios (Services) o Casos de Uso.
+- **Validación Pronta (Fail Fast):** Validar los datos de entrada (body params, query strings) al comienzo de la petición. Si están mal, devolver `400` inmediatamente sin procesar lógica extra.
+- **Funciones de una Sola Responsabilidad:** Mantener las funciones pequeñas, donde cada una solo realice una única tarea.
+
+## 5. Capacidades del Asistente (AI)
+- **Autonomía:** Tengo total permiso y capacidad para leer, editar, crear, eliminar o realizar cualquier acción necesaria sobre los archivos y carpetas del proyecto para cumplir con los requerimientos.

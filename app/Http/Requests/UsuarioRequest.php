@@ -39,7 +39,6 @@ class UsuarioRequest extends FormRequest
                     "correo_electronico" => "required|email|unique:usuarios",
                     "celular" => "required|numeric|digits:10",
                 ];
-                break;
             case "PUT":
                 return [
                     "correo_electronico" => [
@@ -52,10 +51,8 @@ class UsuarioRequest extends FormRequest
                     ],
                     "celular" => "required|numeric|digits:10",
                 ];
-                break;
-
             default:
-                break;
+                return [];
         }
     }
 

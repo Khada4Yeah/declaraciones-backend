@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Schedule;
+use App\Services\NotificacionService;
 
 Schedule::call(function () {
-    \App\Http\Controllers\NotificationController::enviarNotificaciones();
+    app(NotificacionService::class)->enviarNotificaciones();
 })->dailyAt("09:00");
